@@ -45,6 +45,27 @@ def initialize_database():
     else:
         print(f"Database '{db_filename}' loaded.")
 
+# Function to provide a user menu of which table to add to.
+def adding_to_database():
+    while True:
+        print("\nAdding assets and/or users")
+        print("----------------------------")
+        print("1. Add User or Asset")
+        print("2. Add Asset")
+        print("3. Return to Menu")
+
+        choice = input("Enter your choice: ")
+
+        if choice == '1':
+            add_user()
+        elif choice == '2':
+            add_asset()
+        elif choice == '3':
+            print("Returning to menu...")
+            break
+        else:
+            print("Invalid choice. Please try again.")
+
 # Function to add a new user
 def add_user():
     connection = sqlite3.connect(db_filename)
@@ -118,27 +139,117 @@ def add_asset():
 
     connection.close()
 
+# Function to prompt the user to remove an entry from the database
+def remove_entry():
+    while True:
+        print("\nAsset Inventory Management")
+        print("----------------------------")
+        print("1. Remove an Asset")
+        print("2. Remove a User")
+        print("3. Return to Menu")
+
+        choice = input("Enter your choice: ")
+
+        if choice == '1':
+            remove_asset()
+        elif choice == '2':
+            remove_user()   
+        elif choice == '3':
+            print("Returning to Menu...")
+            break
+        else:
+            print("Invalid choice. Please try again.")
+
 # Function to remove an asset
 def remove_asset():
     connection = sqlite3.connect(db_filename)
     cursor = connection.cursor()
 
-    while True:
-        try:
-            asset_id = int(input("Enter asset ID to remove: "))
-            break
-        except ValueError:
-            print("Invalid input. Please enter a valid integer for the asset ID.")
+    # Check to see if there are assets in the inventory
+    cursor.execute('SELECT * FROM assets')
+    assets = cursor.fetchall()
 
-    cursor.execute('DELETE FROM assets WHERE id = ?', (asset_id,))
-    
-    if cursor.rowcount == 0:
-        print("Asset not found.")
+    # If there are no assets inform the user. Otherwise allow the user to delete an asset.
+    if not assets:
+        print("There are no assets in the inventory")
     else:
-        connection.commit()
-        print(f"Asset with ID {asset_id} removed successfully!")
+        view_inventory()
+        while True:
+            try:
+                asset_id = int(input("Enter asset ID to remove or type 0 to cancel: "))
+                break
+            except ValueError:
+                print("Invalid input. Please enter a valid integer for the asset ID.")
+
+        cursor.execute('DELETE FROM assets WHERE id = ?', (asset_id,))
+        
+        if cursor.rowcount == 0:
+            print("Asset not found.")
+        else:
+            connection.commit()
+            print(f"Asset with ID {asset_id} removed successfully!")
 
     connection.close()
+
+# Function to remove a user if they are not linked to an existing asset
+def remove_user():
+    connection = sqlite3.connect(db_filename)
+    cursor = connection.cursor()
+
+    # Check if there are users without assets
+    cursor.execute('''
+        SELECT user_id, name FROM users
+        WHERE user_id NOT IN (SELECT DISTINCT user_id FROM assets)
+    ''')
+    users = cursor.fetchall()
+
+    if not users:
+        print("There are no users that can be removed as all are linked to existing assets.")
+    else:
+        print("\nUsers without assets:")
+        for user in users:
+            print(f"User ID: {user[0]}, Name: {user[1]}")
+        
+        while True:
+            try:
+                user_id = int(input("Enter user ID to remove or type 0 to cancel: "))
+                if user_id == 0:
+                    print("Operation cancelled.")
+                    return
+                break
+            except ValueError:
+                print("Invalid input. Please enter a valid integer for the user ID.")
+
+        cursor.execute('DELETE FROM users WHERE user_id = ?', (user_id,))
+        
+        if cursor.rowcount == 0:
+            print("User not found or user is linked to an asset.")
+        else:
+            connection.commit()
+            print(f"User with ID {user_id} removed successfully!")
+
+    connection.close()
+
+# Menu to choose which SQL table to view
+def view_tables():
+    while True:
+        print("\nViewing asset or user tables")
+        print("----------------------------")
+        print("1. View Inventory")
+        print("2. View Users")
+        print("3. Return to Menu")
+
+        choice = input("Enter your choice: ")
+
+        if choice == '1':
+            view_inventory()
+        elif choice == '2':
+            view_users()
+        elif choice == '3':
+            print("Returning to Menu...")
+            break
+        else:
+            print("Invalid choice. Please try again.")
 
 # Function to view all assets with associated users
 def view_inventory():
@@ -184,31 +295,143 @@ def view_users():
 
     connection.close()
 
+# Function to prompt the user which database they want to edit an entry from
+def edit_entry():
+    while True:
+        print("\nEdit Entries")
+        print("----------------------------")
+        print("1. Edit User Entry")
+        print("2. Edit Asset Entry")
+        print("3. Return to Menu")
+
+        choice = input("Enter your choice: ")
+
+        if choice == '1':
+            edit_user()
+        elif choice == '2':
+            edit_asset()
+        elif choice == '3':
+            print("Returning to Menu...")
+            break
+        else:
+            print("Invalid choice. Please try again.")
+
+# Function to edit an entry in the users table
+def edit_user():
+    connection = sqlite3.connect(db_filename)
+    cursor = connection.cursor()
+
+    view_users()
+    while True:
+        try:
+            user_id = int(input("Enter the user ID to edit: "))
+            break
+        except ValueError:
+            print("Invalid input. Please enter a valid integer for the user ID.")
+
+    cursor.execute('SELECT * FROM users WHERE user_id = ?', (user_id,))
+    user = cursor.fetchone()
+
+    if user:
+        new_name = input(f"Enter new name (current: {user[1]}): ") or user[1]
+        new_email = input(f"Enter new email (current: {user[2]}): ") or user[2]
+        new_department = input(f"Enter new department (current: {user[3]}): ") or user[3]
+
+        cursor.execute('''
+            UPDATE users
+            SET name = ?, email = ?, department = ?
+            WHERE user_id = ?
+        ''', (new_name, new_email, new_department, user_id))
+        connection.commit()
+        print("User updated successfully!")
+    else:
+        print("User not found.")
+
+    connection.close()
+
+# Function to edit an entry in the assets table
+def edit_asset():
+    connection = sqlite3.connect(db_filename)
+    cursor = connection.cursor()
+
+    view_inventory()
+    while True:
+        try:
+            asset_id = int(input("Enter the asset ID to edit: "))
+            break
+        except ValueError:
+            print("Invalid input. Please enter a valid integer for the asset ID.")
+
+    cursor.execute('SELECT * FROM assets WHERE id = ?', (asset_id,))
+    asset = cursor.fetchone()
+
+    if asset:
+        new_name = input(f"Enter new asset name (current: {asset[1]}): ") or asset[1]
+        new_category = input(f"Enter new category (current: {asset[2]}): ") or asset[2]
+        while True:
+            new_purchase_date = input(f"Enter new purchase date (current: {asset[3]}): ") or asset[3]
+            try:
+                year, month, day = map(int, new_purchase_date.split('-'))
+                if len(new_purchase_date) == 10 and 1000 <= year <= 9999 and 1 <= month <= 12 and 1 <= day <= 31:
+                    break
+                else:
+                    print("Invalid format. Please use YYYY-MM-DD with valid year, month, and day values.")
+            except ValueError:
+                print("Invalid format. Please use YYYY-MM-DD with valid year, month, and day values.")
+        while True:
+            try:
+                new_purchase_price = float(input(f"Enter new purchase price (current: {asset[4]}): ") or asset[4])
+                break
+            except ValueError:
+                print("Invalid input. Please enter a valid number for the purchase price.")
+        new_status = input(f"Enter new status (current: {asset[5]}): ") or asset[5]
+        new_location = input(f"Enter new location (current: {asset[6]}): ") or asset[6]
+        while True:
+            try:
+                new_user_id = int(input(f"Enter new user ID (current: {asset[7]}): ") or asset[7])
+                cursor.execute('SELECT * FROM users WHERE user_id = ?', (new_user_id,))
+                user = cursor.fetchone()
+                if user:
+                    break
+                else:
+                    print("The user ID was not found. Please enter a valid user ID.")
+            except ValueError:
+                print("Invalid input. Please enter a valid integer for the user ID.")
+
+        cursor.execute('''
+            UPDATE assets
+            SET name = ?, category = ?, purchase_date = ?, purchase_price = ?, status = ?, location = ?, user_id = ?
+            WHERE id = ?
+        ''', (new_name, new_category, new_purchase_date, new_purchase_price, new_status, new_location, new_user_id, asset_id))
+        connection.commit()
+        print("Asset updated successfully!")
+    else:
+        print("Asset not found.")
+
+    connection.close()
+
 # Function to display the menu
 def menu():
     while True:
         print("\nAsset Inventory Management")
         print("----------------------------")
-        print("1. Add User")
-        print("2. Add Asset")
-        print("3. Remove Asset")
-        print("4. View Inventory")
-        print("5. View Users")
-        print("6. Exit")
+        print("1. Add Users and/or Assets")
+        print("2. Remove an entry from the Database")
+        print("3. View Database Tables")
+        print("4. Edit an Entry")
+        print("5. Exit")
 
         choice = input("Enter your choice: ")
 
         if choice == '1':
-            add_user()
+            adding_to_database()
         elif choice == '2':
-            add_asset()
+            remove_entry()
         elif choice == '3':
-            remove_asset()
+            view_tables()      
         elif choice == '4':
-            view_inventory()
+            edit_entry()
         elif choice == '5':
-            view_users()
-        elif choice == '6':
             print("Exiting program...")
             break
         else:
