@@ -1,8 +1,8 @@
-# Project Title: Asset Inventory Management System
+## Asset Inventory Management System
 
 ## Description
 
-This project implements an Asset Inventory Management System using Python and SQLite. The system allows users to interact with an SQL relational database to manage asset records, providing the ability to insert, modify, delete, and retrieve asset data. This project demonstrates a working interaction between Python and an SQLite database.
+This project implements an Asset Inventory Management System using Python and SQLite. The system allows users to interact with an SQL relational database to manage asset records, providing the ability to insert, modify, delete, and retrieve asset data. Additionaly, users are able manage the users associated with each asset in the same manner. This project demonstrates a working interaction between Python and an SQLite database.
 
 ## Features
 
@@ -23,7 +23,7 @@ This project implements an Asset Inventory Management System using Python and SQ
 To run this project, you need the following installed on your system:
 
 - **Python 3.x** (You can download it from [python.org](https://www.python.org))
-- **SQLite** (Check if it's included with Python or install from [sqlite.org](https://www.sqlite.org))
+- **SQLite** (You can download it from [sqlite.org](https://www.sqlite.org))
 
 ### Steps to Run:
 
@@ -77,6 +77,7 @@ The SQLite database consists of two tables for managing users and assets with th
 ## Stretch Challenges
 
 - **Join Operations**: This project has been extended to demonstrate SQL joins between the users and assets tables. Specifically, it retrieves assets along with their assigned owners by joining the asset and user tables.
+- **Error Handling**: Along with this project specific attention has been implemented to ensure user actions do not negatively affect the data being stored and manipulated in the database. 
 
 ## Video Demonstration
 A full demonstration of the system can be viewed [here](YouTube link).\
@@ -99,7 +100,3 @@ If you would like to contribute:
    git push origin feature-branch
    ```
 5. Open a Pull Request.
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

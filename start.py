@@ -37,10 +37,11 @@ def initialize_database():
             )
         ''')
 
-        # Commit the transaction
+        # Add the tables to the database
         connection.commit()
         connection.close()
 
+    # Inform the user the status of the database when the program starts
         print(f"Database '{db_filename}' created along with 'users' and 'assets' tables.")
     else:
         print(f"Database '{db_filename}' loaded.")
@@ -95,6 +96,7 @@ def add_asset():
     name = input("Enter asset name: ")
     category = input("Enter asset category: ")
   
+    # Error handling to ensure that the date value is provided in the format demonstrated in the prompt to the user
     while True:
         purchase_date = input("Enter purchase date (YYYY-MM-DD): ")
         try:
@@ -106,6 +108,7 @@ def add_asset():
         except ValueError:
             print("Invalid format. Please use YYYY-MM-DD with valid year, month, and day values.")
     
+    # Error Handlong to prevent string values from being provided
     while True:
         try:
             purchase_price = float(input("Enter purchase price: "))
@@ -117,10 +120,14 @@ def add_asset():
     location = input("Enter asset location: ")
     
     while True:
+        # Error handling to ensure that the user ID associated with the newly created asset exists and prompts the user to create the user if the
+        # user does not currently exsiist
         try:
             user_id = int(input("Enter user ID to assign the asset to: "))
             cursor.execute('SELECT * FROM users WHERE user_id = ?', (user_id,))
             user = cursor.fetchone()
+
+            #Logic to determine if the user input is associated with an exsisting user
             if user:
                 break
             else:
@@ -139,7 +146,7 @@ def add_asset():
 
     connection.close()
 
-# Function to prompt the user to remove an entry from the database
+# Function to prompt the user to remove an entry from one of the tables in the database
 def remove_entry():
     while True:
         print("\nAsset Inventory Management")
@@ -169,11 +176,12 @@ def remove_asset():
     cursor.execute('SELECT * FROM assets')
     assets = cursor.fetchall()
 
-    # If there are no assets inform the user. Otherwise allow the user to delete an asset.
+    # Error handlong to inform the user if there are no assets, otherwise allowes the user to delete an asset.
     if not assets:
         print("There are no assets in the inventory")
     else:
         view_inventory()
+        # Error handlong to ensure the user choice is an exsisting inventory item
         while True:
             try:
                 asset_id = int(input("Enter asset ID to remove or type 0 to cancel: "))
@@ -203,6 +211,7 @@ def remove_user():
     ''')
     users = cursor.fetchall()
 
+    # Logic to inform the user if there are no users in the users table
     if not users:
         print("There are no users that can be removed as all are linked to existing assets.")
     else:
@@ -210,6 +219,7 @@ def remove_user():
         for user in users:
             print(f"User ID: {user[0]}, Name: {user[1]}")
         
+        # Error handlong to ensure that only a valid user ID can be selected
         while True:
             try:
                 user_id = int(input("Enter user ID to remove or type 0 to cancel: "))
@@ -222,6 +232,7 @@ def remove_user():
 
         cursor.execute('DELETE FROM users WHERE user_id = ?', (user_id,))
         
+        # Error checking to prevent a user from being deleted if they are associated to an asset/don't exsist
         if cursor.rowcount == 0:
             print("User not found or user is linked to an asset.")
         else:
@@ -264,6 +275,7 @@ def view_inventory():
 
     rows = cursor.fetchall()
 
+    # Logic to check if there are any assets to be displayed. If there are no assets the user is informed
     if rows:
         print("\nAsset Inventory:")
         print("----------------------------")
@@ -285,9 +297,12 @@ def view_users():
 
     rows = cursor.fetchall()
 
+    # Logic used to inform the user if there are no users in the users tabe. If there are users they are listed
     if rows:
         print("\nUser List:")
         print("----------------------------")
+
+        # Loop to iterate through each row of the entries in the asset table
         for row in rows:
             print(f"User ID: {row[0]}, Name: {row[1]}")
     else:
@@ -322,6 +337,8 @@ def edit_user():
     cursor = connection.cursor()
 
     view_users()
+    
+    # Error handlng to ensiure that the user ID selected exsists
     while True:
         try:
             user_id = int(input("Enter the user ID to edit: "))
@@ -329,6 +346,7 @@ def edit_user():
         except ValueError:
             print("Invalid input. Please enter a valid integer for the user ID.")
 
+    # Code to initiate the SQL querry to get the desired entry
     cursor.execute('SELECT * FROM users WHERE user_id = ?', (user_id,))
     user = cursor.fetchone()
 
@@ -365,9 +383,13 @@ def edit_asset():
     cursor.execute('SELECT * FROM assets WHERE id = ?', (asset_id,))
     asset = cursor.fetchone()
 
+    # Allow the user to change any value of the entry but also allow the user tp press enter
+    #to keep the original valie unaltered
     if asset:
         new_name = input(f"Enter new asset name (current: {asset[1]}): ") or asset[1]
         new_category = input(f"Enter new category (current: {asset[2]}): ") or asset[2]
+
+        # Error handlong to ensure that the purchase date is n accordance witht he defined outline
         while True:
             new_purchase_date = input(f"Enter new purchase date (current: {asset[3]}): ") or asset[3]
             try:
@@ -386,6 +408,8 @@ def edit_asset():
                 print("Invalid input. Please enter a valid number for the purchase price.")
         new_status = input(f"Enter new status (current: {asset[5]}): ") or asset[5]
         new_location = input(f"Enter new location (current: {asset[6]}): ") or asset[6]
+
+        # Error handlong to ensure that the user assigned to the asset exists
         while True:
             try:
                 new_user_id = int(input(f"Enter new user ID (current: {asset[7]}): ") or asset[7])
