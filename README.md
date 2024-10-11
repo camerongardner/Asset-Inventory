@@ -80,7 +80,7 @@ The SQLite database consists of two tables for managing users and assets with th
 - **Error Handling**: Along with this project specific attention has been implemented to ensure user actions do not negatively affect the data being stored and manipulated in the database. 
 
 ## Video Demonstration
-A full demonstration of the system can be viewed [here](YouTube link).\
+A full demonstration of the system can be viewed [here](https://studio.youtube.com/video/-kzoPFdEQHY/edit).
 
 ## Contribution
 
