@@ -51,7 +51,7 @@ def adding_to_database():
     while True:
         print("\nAdding assets and/or users")
         print("----------------------------")
-        print("1. Add User or Asset")
+        print("1. Add User")
         print("2. Add Asset")
         print("3. Return to Menu")
 
